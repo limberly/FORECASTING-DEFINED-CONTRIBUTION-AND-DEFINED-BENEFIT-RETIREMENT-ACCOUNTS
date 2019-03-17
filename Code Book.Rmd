@@ -2,7 +2,7 @@
 title: Code Book - FORECASTING DEFINED CONTRIBUTION AND DEFINED BENEFIT RETIREMENT
   ACCOUNTS
 author: "James Bishop, Hyungue Lim"
-date: "March 5, 2019"
+date: "March 16, 2019"
 output: html_document
 ---
 
@@ -10,20 +10,89 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Create aggregated excel data file and put it into github. Call dataset from github.
+##Things to note before proceeding
+- Original data manipulations can be found in the excel file called "Documentation"
 
-Data
-January 1, 1950 - January 1, 2018 S&P value
-Volatility: standard deviation of monthly yield each year (ex. Standard deviation of stock return from January to December of 1950 is calculated to be used for volatility of January 1, 1951)
-Return calculated as YOY percent change
-YOY dividend yield from: http://www.multpl.com/s-p-500-dividend-yield/table
-Assume $100,000 at age 55
-Contribution rate: 9%
-Salary increase: 3%
+- Annual returns and volatility are calculated from S&P 500 values from January 1, 1950 - January 1, 2018
 
-Binomial Tree method:
-Forward tree is used.
-Assumes discrete model
-Up: 1 + (stock return - dividend + volatility)
-Down: 1 + (stock return - dividend - volatility)
-Probability of Up: {(1+stock return - dividend) - Down} / (Up - Down)
+- Returns are yearly. Volatility of each year is calculated by taking standard deviation of monthly returns and multiplying by (12)^0.5
+
+##Data Description
+- contribution_4p: Includes contribution dollar amounts at age 25, 35, and 45. Initial salary of $50,000 at each age. Contribution percentage fixed at 4%. 
+- contribution_8p: Includes contribution dollar amounts at age 25, 35, and 45. Initial salary of $50,000 at each age. Contribution percentage fixed at 8%. 
+- contribution_graded: Includes contribution dollar amounts at age 25, 35, and 45. Initial salary of $50,000 at each age. Contribution percentage graded. 4% at age 25, 1% increase every 10 years there after.
+- Service_Start_25 column: Contributions of initial service start age at 25
+- Service_Start_35 column: Contributions of initial service start age at 35
+- Service_Start_45 column: Contributions of initial service start age at 45
+- In all functions, a denotes years left until retirement. b denotes service start age, age 25 being 0.
+- For b, for instance, if service start age is 35, b=10
+- For 4% contribution rate, use "contribution_4p" data frame
+- For 8% contribution rate, use "contribution_8p" data frame
+- For graded contribution rate, use "contribution_graded" data frame
+
+#Code used for Fixed Interest Rate with 4% contribution and service start age at 25
+```{r, contribution_4p}
+Fixed <- function(a,b) {
+  
+    Future_Value <- rep(x=0, a)
+    for (i in 1:a) {
+      Future_Value[i] <- contribution_4p$Service_Start_25[i+b]*(1.0734)^(a-i+1)
+    }
+    final <- sum(Future_Value)
+    
+    print(mean(final))
+}
+Fixed(40,0) #Result for lumpsum at age 65
+```
+
+#Code used for Bootstrapping with 4% contribution and service start age at 25
+```{r}
+Bootstrapp <- function(a,b) {
+  final <- rep(x=0, 1000)
+  for (j in 1:1000) {
+    
+    Bootstrap_Return <- 0
+    Bootstrap_Return <- sample(SnP500$Return, size = a, replace = TRUE)
+    Bootstrap_Return <- as.data.frame(Bootstrap_Return)
+    
+    Future_Value <- rep(x=0, a)
+  for (i in 1:a) {
+    Future_Value[i] <- contribution_4p$Service_Start_25[i+b]*prod(Bootstrap_Return$Bootstrap_Return[i:a])
+    
+  }
+  final[j] <- sum(Future_Value)
+  }
+  print(mean(final))
+  print(sd(final))
+}
+
+Bootstrap(40,0) #Result for lumpsum at age 65
+```
+
+#Code used for Binomial Bootstrapping with 4% contribution and service start age at 25
+```{r}
+Binomial_Bootstrap <- function(a,b){
+  final <- rep(x=0, 1000)
+  for (k in 1:1000) {
+    Expected_Value <- 0
+    
+    for (j in 1:a) { 
+      Random_Return <- sample(1:68, 1, replace = TRUE)
+      up <- 0; dn <- 0; prob <- 0
+      up <- 1+((SnP500$Return[Random_Return]) + SnP500$Volatility[Random_Return])
+      dn <- 1+((SnP500$Return[Random_Return]) - SnP500$Volatility[Random_Return])
+      prob <- ((1+(SnP500$Return[Random_Return]) - dn) / (up - dn))
+      
+      #calculating tree. yes is initially 0, so adding contribution from the beginning is ok.
+      Expected_Value = (Expected_Value + contribution_4p$Service_Start_25[j+b]) * up * prob + (Expected_Value+ contribution_4p$Service_Start_25[j+b]) * dn * (1 - prob)
+      
+      
+    }
+    final[k] <- Expected_Value
+  }
+  print(mean(final))
+  print(sd(final))
+}
+
+Binomial_Bootstrap(40,0) #Result for lumpsum at age 65
+```
