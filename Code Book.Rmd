@@ -1,0 +1,29 @@
+---
+title: Code Book - FORECASTING DEFINED CONTRIBUTION AND DEFINED BENEFIT RETIREMENT
+  ACCOUNTS
+author: "James Bishop, Hyungue Lim"
+date: "March 5, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Create aggregated excel data file and put it into github. Call dataset from github.
+
+Data
+January 1, 1950 - January 1, 2018 S&P value
+Volatility: standard deviation of monthly yield each year (ex. Standard deviation of stock return from January to December of 1950 is calculated to be used for volatility of January 1, 1951)
+Return calculated as YOY percent change
+YOY dividend yield from: http://www.multpl.com/s-p-500-dividend-yield/table
+Assume $100,000 at age 55
+Contribution rate: 9%
+Salary increase: 3%
+
+Binomial Tree method:
+Forward tree is used.
+Assumes discrete model
+Up: 1 + (stock return - dividend + volatility)
+Down: 1 + (stock return - dividend - volatility)
+Probability of Up: {(1+stock return - dividend) - Down} / (Up - Down)
