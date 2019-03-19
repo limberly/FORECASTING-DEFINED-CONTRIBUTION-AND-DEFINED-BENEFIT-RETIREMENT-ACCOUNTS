@@ -32,7 +32,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #Code used for Fixed Interest Rate with 4% contribution and service start age at 25
 ```{r, contribution_4p}
-Fixed <- function(a,b) {
+function(a,b) {
   
     Future_Value <- rep(x=0, a)
     for (i in 1:a) {
@@ -42,12 +42,12 @@ Fixed <- function(a,b) {
     
     print(mean(final))
 }
-Fixed(40,0) #Result for lumpsum at age 65
+
 ```
 
 #Code used for Bootstrapping with 4% contribution and service start age at 25
 ```{r}
-Bootstrapp <- function(a,b) {
+function(a,b) {
   final <- rep(x=0, 1000)
   for (j in 1:1000) {
     
@@ -66,12 +66,12 @@ Bootstrapp <- function(a,b) {
   print(sd(final))
 }
 
-Bootstrap(40,0) #Result for lumpsum at age 65
+
 ```
 
 #Code used for Binomial Bootstrapping with 4% contribution and service start age at 25
 ```{r}
-Binomial_Bootstrap <- function(a,b){
+function(a,b){
   final <- rep(x=0, 1000)
   for (k in 1:1000) {
     Expected_Value <- 0
@@ -94,5 +94,5 @@ Binomial_Bootstrap <- function(a,b){
   print(sd(final))
 }
 
-Binomial_Bootstrap(40,0) #Result for lumpsum at age 65
+
 ```

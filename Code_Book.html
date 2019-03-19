@@ -218,22 +218,112 @@ $(document).ready(function () {
 </div>
 <div id="code-used-for-fixed-interest-rate-with-4-contribution-and-service-start-age-at-25" class="section level1">
 <h1>Code used for Fixed Interest Rate with 4% contribution and service start age at 25</h1>
-<pre class="r"><code>Fixed &lt;- function(a,b) {
-    for (j in 1:1000) {
+<pre class="r"><code>function(a,b) {
+  
     Future_Value &lt;- rep(x=0, a)
     for (i in 1:a) {
-      Future_Value[i] &lt;- contribution_4p$Service_Start_25[i+b]*fixed^(a-i+1)
+      Future_Value[i] &lt;- contribution_4p$Service_Start_25[i+b]*(1.0734)^(a-i+1)
     }
-    final[j] &lt;- sum(Future_Value)
-    }
-    mean(final)
-  }</code></pre>
+    final &lt;- sum(Future_Value)
+    
+    print(mean(final))
+}</code></pre>
+<pre><code>## function(a,b) {
+##   
+##     Future_Value &lt;- rep(x=0, a)
+##     for (i in 1:a) {
+##       Future_Value[i] &lt;- contribution_4p$Service_Start_25[i+b]*(1.0734)^(a-i+1)
+##     }
+##     final &lt;- sum(Future_Value)
+##     
+##     print(mean(final))
+## }</code></pre>
 </div>
 <div id="code-used-for-bootstrapping-with-4-contribution-and-service-start-age-at-25" class="section level1">
 <h1>Code used for Bootstrapping with 4% contribution and service start age at 25</h1>
+<pre class="r"><code>function(a,b) {
+  final &lt;- rep(x=0, 1000)
+  for (j in 1:1000) {
+    
+    Bootstrap_Return &lt;- 0
+    Bootstrap_Return &lt;- sample(SnP500$Return, size = a, replace = TRUE)
+    Bootstrap_Return &lt;- as.data.frame(Bootstrap_Return)
+    
+    Future_Value &lt;- rep(x=0, a)
+  for (i in 1:a) {
+    Future_Value[i] &lt;- contribution_4p$Service_Start_25[i+b]*prod(Bootstrap_Return$Bootstrap_Return[i:a])
+    
+  }
+  final[j] &lt;- sum(Future_Value)
+  }
+  print(mean(final))
+  print(sd(final))
+}</code></pre>
+<pre><code>## function(a,b) {
+##   final &lt;- rep(x=0, 1000)
+##   for (j in 1:1000) {
+##     
+##     Bootstrap_Return &lt;- 0
+##     Bootstrap_Return &lt;- sample(SnP500$Return, size = a, replace = TRUE)
+##     Bootstrap_Return &lt;- as.data.frame(Bootstrap_Return)
+##     
+##     Future_Value &lt;- rep(x=0, a)
+##   for (i in 1:a) {
+##     Future_Value[i] &lt;- contribution_4p$Service_Start_25[i+b]*prod(Bootstrap_Return$Bootstrap_Return[i:a])
+##     
+##   }
+##   final[j] &lt;- sum(Future_Value)
+##   }
+##   print(mean(final))
+##   print(sd(final))
+## }</code></pre>
 </div>
 <div id="code-used-for-binomial-bootstrapping-with-4-contribution-and-service-start-age-at-25" class="section level1">
 <h1>Code used for Binomial Bootstrapping with 4% contribution and service start age at 25</h1>
+<pre class="r"><code>function(a,b){
+  final &lt;- rep(x=0, 1000)
+  for (k in 1:1000) {
+    Expected_Value &lt;- 0
+    
+    for (j in 1:a) { 
+      Random_Return &lt;- sample(1:68, 1, replace = TRUE)
+      up &lt;- 0; dn &lt;- 0; prob &lt;- 0
+      up &lt;- 1+((SnP500$Return[Random_Return]) + SnP500$Volatility[Random_Return])
+      dn &lt;- 1+((SnP500$Return[Random_Return]) - SnP500$Volatility[Random_Return])
+      prob &lt;- ((1+(SnP500$Return[Random_Return]) - dn) / (up - dn))
+      
+      #calculating tree. yes is initially 0, so adding contribution from the beginning is ok.
+      Expected_Value = (Expected_Value + contribution_4p$Service_Start_25[j+b]) * up * prob + (Expected_Value+ contribution_4p$Service_Start_25[j+b]) * dn * (1 - prob)
+      
+      
+    }
+    final[k] &lt;- Expected_Value
+  }
+  print(mean(final))
+  print(sd(final))
+}</code></pre>
+<pre><code>## function(a,b){
+##   final &lt;- rep(x=0, 1000)
+##   for (k in 1:1000) {
+##     Expected_Value &lt;- 0
+##     
+##     for (j in 1:a) { 
+##       Random_Return &lt;- sample(1:68, 1, replace = TRUE)
+##       up &lt;- 0; dn &lt;- 0; prob &lt;- 0
+##       up &lt;- 1+((SnP500$Return[Random_Return]) + SnP500$Volatility[Random_Return])
+##       dn &lt;- 1+((SnP500$Return[Random_Return]) - SnP500$Volatility[Random_Return])
+##       prob &lt;- ((1+(SnP500$Return[Random_Return]) - dn) / (up - dn))
+##       
+##       #calculating tree. yes is initially 0, so adding contribution from the beginning is ok.
+##       Expected_Value = (Expected_Value + contribution_4p$Service_Start_25[j+b]) * up * prob + (Expected_Value+ contribution_4p$Service_Start_25[j+b]) * dn * (1 - prob)
+##       
+##       
+##     }
+##     final[k] &lt;- Expected_Value
+##   }
+##   print(mean(final))
+##   print(sd(final))
+## }</code></pre>
 </div>
 
 
